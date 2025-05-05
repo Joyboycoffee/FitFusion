@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="/Static/dashboard_signout.css">
+    <meta http-equiv="Cache-Control" content="no-store">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | FitFusion</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        :root {
+            --primary: #4F46E5;
+            --primary-light: #818CF8;
+            --dark: #1F2937;
+            --light: #F9FAFB;
+            --gray: #6B7280;
+            --light-gray: #E5E7EB;
+            --white: #FFFFFF;
+            --sidebar-width: 240px;
+        }
+
+        body {
+            display: flex;
+            min-height: 100vh;
+            background-color: var(--light);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--white);
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
+            padding: 1.5rem 0;
+            position: fixed;
+            height: 100vh;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0 1.5rem 2rem;
+            text-decoration: none;
+            border-bottom: 1px solid var(--light-gray);
+            margin-bottom: 1.5rem;
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: #ef4444;
+            color: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .logo-text {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .nav-menu {
+            padding: 0 0.75rem;
+        }
+
+        .nav-item {
+            margin-bottom: 0.25rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: var(--gray);
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            background: #ef4444;
+            color: #fff;
+        }
+
+        .nav-link i {
+            font-size: 1.1rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        .log-form .btn {
+            margin-top: 1.25rem;
+        }
+        .bmi-calculator .btn {
+            margin-top: 1.25rem;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            padding: 2rem;
+        }
+
+
+    </style>
+</head>
+<body>
+    <script>
+        // Fastest auth check on any load (including bfcache)
+        (function() {
+            function checkAuth() {
+                if (window.location.pathname.includes('dashboard')) {
+                    var xhr = new XMLHttpRequest();
+                    xhr.open('GET', '/api/profile', false); // synchronous
+                    xhr.withCredentials = true;
+                    xhr.send(null);
+                    if (xhr.status !== 200) {
+                        window.location.href = '/';
+                    }
+                }
+            }
+            checkAuth();
+            window.onpageshow = function(event) {
+                if (event.persisted) {
+                    checkAuth();
+                }
+            };
+        })();
+    </script>
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar">
+        <a href="/dashboard" class="logo">
+            <div class="logo-icon">FF</div>
+            <span class="logo-text">FitFusion</span>
+        </a>
+        
+        <div class="nav-menu">
+            <div class="nav-item">
+                <a href="#dashboard" class="nav-link active">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="#workout" class="nav-link">
+                    <i class="fas fa-dumbbell"></i>
+                    <span>Workout</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="#nutrition" class="nav-link">
+                    <i class="fas fa-utensils"></i>
+                    <span>Nutrition</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="#bmi" class="nav-link">
+                    <i class="fas fa-calculator"></i>
+                    <span>BMI Calculator</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="#profile" class="nav-link">
+                    <i class="fas fa-user"></i>
+                    <span>Profile</span>
+                </a>
+            </div>
+        </div>
+
+    </nav>
+
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Dashboard Content -->
+        <div id="dashboard-content" class="content-section active">
+            <div class="dashboard-header">
+                <h1>Welcome to FitFusion</h1>
+                <button id="signout-btn" class="signout-btn" title="Sign Out">
+                    <i class="fas fa-sign-out-alt"></i> Sign Out
+                </button>
+            </div>
+            <div class="dashboard-cards">
+                <div class="dashboard-card">
+                    <div class="card-title">Workouts This Week</div>
+                    <div class="card-value" id="workouts-this-week">-</div>
+                </div>
+                <div class="dashboard-card">
+                    <div class="card-title">Calories Consumed</div>
+                    <div class="card-value" id="calories-consumed">-</div>
+                </div>
+                <div class="dashboard-card">
+                    <div class="card-title">BMI</div>
+                    <div class="card-value" id="bmi">-</div>
+                </div>
+                <div class="dashboard-card">
+                    <div class="card-title">Goal Progress</div>
+                    <div class="card-value" id="goal-progress">-</div>
+                </div>
+            </div>
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Fetch dashboard stats and update cards
+    function updateDashboardStats() {
+        fetch('/api/dashboard_stats', { credentials: 'same-origin' })
+            .then(res => res.json())
+            .then(data => {
+                if (data.workouts_this_week !== undefined) {
+                    document.getElementById('workouts-this-week').textContent = data.workouts_this_week;
+                }
+                if (data.calories_consumed !== undefined) {
+                    document.getElementById('calories-consumed').textContent = data.calories_consumed.toLocaleString();
+                }
+                if (data.bmi !== undefined) {
+                    document.getElementById('bmi').textContent = data.bmi;
+                }
+                if (data.goal_progress !== undefined) {
+                    document.getElementById('goal-progress').textContent = data.goal_progress + '%';
+                }
+                if (data.goal_pie && Array.isArray(data.goal_pie) && window.goalPieChart) {
+                    window.goalPieChart.data.datasets[0].data = data.goal_pie;
+                    window.goalPieChart.update();
+                }
+                // Optionally, update charts with real data here
+            });
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        updateDashboardStats();
+        // Charts (init with empty data, will update after fetch)
+        const red = '#ef4444', redLight = '#fff0f0', redDark = '#b91c1c';
+        window.workoutsLineChart = new Chart(document.getElementById('workouts-line-chart'), {
+            type: 'line',
+            data: { labels: [], datasets: [{ label: 'Workouts', data: [], borderColor: red, backgroundColor: redLight, fill: true, tension: 0.4 }] },
+            options: { plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { beginAtZero: true, grid: { color: redLight } } } }
+        });
+        window.caloriesBarChart = new Chart(document.getElementById('calories-bar-chart'), {
+            type: 'bar',
+            data: { labels: [], datasets: [{ label: 'Calories', data: [], backgroundColor: red, borderRadius: 12 }] },
+            options: { plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { beginAtZero: true, grid: { color: redLight } } } }
+        });
+        window.goalPieChart = new Chart(document.getElementById('goal-pie-chart'), {
+            type: 'doughnut',
+            data: { labels: ['Achieved', 'Remaining'], datasets: [{ data: [60, 40], backgroundColor: [red, redLight], borderWidth: 0 }] },
+            options: { plugins: { legend: { display: true, position: 'bottom', labels: { color: redDark } } }, cutout: '70%' }
+        });
+        // Fetch and update chart data
+        fetch('/api/workout_timeseries', { credentials: 'same-origin' })
+            .then(res => res.json())
+            .then(data => {
+                workoutsLineChart.data.labels = data.labels.map(d => d.slice(5)); // MM-DD
+                workoutsLineChart.data.datasets[0].data = data.data;
+                workoutsLineChart.update();
+            });
+        fetch('/api/nutrition_timeseries', { credentials: 'same-origin' })
+            .then(res => res.json())
+            .then(data => {
+                caloriesBarChart.data.labels = data.labels.map(d => d.slice(5));
+                caloriesBarChart.data.datasets[0].data = data.data;
+                caloriesBarChart.update();
+            });
+    });
+    // Workout log form submit
+    document.addEventListener('DOMContentLoaded', function() {
+        const workoutForm = document.getElementById('workout-log-form');
+        if (workoutForm) {
+            workoutForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                fetch('/api/log_workout', {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        date: document.getElementById('workout-date').value,
+                        type: document.getElementById('workout-type').value,
+                        duration: document.getElementById('workout-duration').value,
+                        calories_burned: document.getElementById('workout-calories').value
+                    })
+                }).then(res => res.json()).then(data => {
+                    document.getElementById('workout-log-message').textContent = data.success ? 'Workout logged!' : (data.error || 'Error');
+                    updateDashboardStats();
+                    // Refresh chart
+                    fetch('/api/workout_timeseries', { credentials: 'same-origin' })
+                        .then(res => res.json())
+                        .then(data => {
+                            workoutsLineChart.data.labels = data.labels.map(d => d.slice(5));
+                            workoutsLineChart.data.datasets[0].data = data.data;
+                            workoutsLineChart.update();
+                        });
+                });
+            });
+        }
+        // Nutrition log form submit
+        const nutritionForm = document.getElementById('nutrition-log-form');
+        if (nutritionForm) {
+            nutritionForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                fetch('/api/log_nutrition', {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        date: document.getElementById('nutrition-date').value,
+                        meal: document.getElementById('nutrition-meal').value,
+                        calories: document.getElementById('nutrition-calories').value,
+                        protein: document.getElementById('nutrition-protein').value,
+                        carbs: document.getElementById('nutrition-carbs').value,
+                        fat: document.getElementById('nutrition-fat').value
+                    })
+                }).then(res => res.json()).then(data => {
+                    document.getElementById('nutrition-log-message').textContent = data.success ? 'Meal logged!' : (data.error || 'Error');
+                    updateDashboardStats();
+                    // Refresh chart
+                    fetch('/api/nutrition_timeseries', { credentials: 'same-origin' })
+                        .then(res => res.json())
+                        .then(data => {
+                            caloriesBarChart.data.labels = data.labels.map(d => d.slice(5));
+                            caloriesBarChart.data.datasets[0].data = data.data;
+                            caloriesBarChart.update();
+                        });
+                });
+            });
+        }
+    });
+</script>
+<div class="dashboard-graphs">
+    <div class="graph-card">
+        <canvas id="workouts-line-chart" height="110"></canvas>
+    </div>
+    <div class="graph-card">
+        <canvas id="calories-bar-chart" height="110"></canvas>
+    </div>
+    <div class="graph-card">
+        <canvas id="goal-pie-chart" height="110"></canvas>
+    </div>
+</div>
+            <div class="dashboard-quote">
+                <span class="quote-icon">❝</span>
+                <span class="quote-text">The journey of a thousand miles begins with a single step.</span>
+            </div>
+        </div>
+
+        <!-- Workout Content -->
+        <div id="workout-content" class="content-section">
+    <h1>Workout Plans</h1>
+    <form id="workout-log-form" class="log-form">
+        <h2>Log Workout</h2>
+        <div class="form-group">
+            <label for="workout-date">Date</label>
+            <input type="date" id="workout-date" required>
+        </div>
+        <div class="form-group">
+            <label for="workout-type">Type</label>
+            <input type="text" id="workout-type" placeholder="e.g. Cardio" required>
+        </div>
+        <div class="form-group">
+            <label for="workout-duration">Duration (min)</label>
+            <input type="number" id="workout-duration" required>
+        </div>
+        <div class="form-group">
+            <label for="workout-calories">Calories Burned</label>
+            <input type="number" id="workout-calories" required>
+        </div>
+        <button type="submit" class="btn">Add Workout</button>
+        <div id="workout-log-message" class="message"></div>
+    </form>
+</div>
+
+        <!-- Nutrition Content -->
+        <div id="nutrition-content" class="content-section">
+    <h1>Nutrition Plans</h1>
+    <form id="nutrition-log-form" class="log-form">
+        <h2>Log Nutrition</h2>
+        <div class="form-group">
+            <label for="nutrition-date">Date</label>
+            <input type="date" id="nutrition-date" required>
+        </div>
+        <div class="form-group">
+            <label for="nutrition-meal">Meal</label>
+            <input type="text" id="nutrition-meal" placeholder="e.g. Lunch" required>
+        </div>
+        <div class="form-group">
+            <label for="nutrition-calories">Calories</label>
+            <input type="number" id="nutrition-calories" required>
+        </div>
+        <div class="form-group">
+            <label for="nutrition-protein">Protein (g)</label>
+            <input type="number" id="nutrition-protein">
+        </div>
+        <div class="form-group">
+            <label for="nutrition-carbs">Carbs (g)</label>
+            <input type="number" id="nutrition-carbs">
+        </div>
+        <div class="form-group">
+            <label for="nutrition-fat">Fat (g)</label>
+            <input type="number" id="nutrition-fat">
+        </div>
+        <button type="submit" class="btn">Add Meal</button>
+        <div id="nutrition-log-message" class="message"></div>
+    </form>
+</div>
+
+        <!-- BMI Calculator Content -->
+        <div id="bmi-content" class="content-section">
+            <h1>BMI Calculator</h1>
+            <div class="bmi-calculator">
+                <div class="form-group">
+                    <label for="height">Height (cm)</label>
+                    <input type="number" id="height" placeholder="Enter height">
+                </div>
+                <div class="form-group">
+                    <label for="weight">Weight (kg)</label>
+                    <input type="number" id="weight" placeholder="Enter weight">
+                </div>
+                <button id="calculate-bmi" class="btn">Calculate BMI</button>
+                <div id="bmi-result" class="bmi-result"></div>
+            </div>
+        </div>
+
+        <!-- Profile Content -->
+        <div id="profile-content" class="content-section">
+            <div class="profile-container">
+                <h1>Your Profile</h1>
+                <p>Update your personal information and preferences</p>
+                
+                <form id="profile-form" class="profile-form">
+                    <div class="form-section">
+                        <h3>Personal Information</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="profile-name">Full Name</label>
+                                <input type="text" id="profile-name" name="name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="profile-email">Email</label>
+                                <input type="email" id="profile-email" name="email" readonly>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="profile-age">Age</label>
+                                <input type="number" id="profile-age" name="age" min="10" max="120">
+                            </div>
+                            <div class="form-group">
+                                <label for="profile-gender">Gender</label>
+                                <select id="profile-gender" name="gender">
+                                    <option value="">Select Gender</option>
+                                    <option value="male">Male</option>
+                                    <option value="female">Female</option>
+                                    <option value="other">Other</option>
+                                    <option value="prefer-not-to-say">Prefer not to say</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>Body Measurements</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="profile-height">Height (cm)</label>
+                                <input type="number" id="profile-height" name="height" step="0.1" min="100" max="250">
+                            </div>
+                            <div class="form-group">
+                                <label for="profile-weight">Weight (kg)</label>
+                                <input type="number" id="profile-weight" name="weight" step="0.1" min="20" max="300">
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="form-section">
+                        <h3>Fitness Goals</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="profile-goal">Fitness Goal</label>
+                                <select id="profile-goal" name="fitness_goal">
+                                    <option value="weight_loss">Weight Loss</option>
+                                    <option value="muscle_gain">Muscle Gain</option>
+                                    <option value="maintenance">Maintenance</option>
+                                    <option value="endurance">Endurance</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="profile-activity">Activity Level</label>
+                                <select id="profile-activity" name="activity_level">
+                                    <option value="sedentary">Sedentary (little or no exercise)</option>
+                                    <option value="light">Light (exercise 1-3 days/week)</option>
+                                    <option value="moderate">Moderate (exercise 3-5 days/week)</option>
+                                    <option value="active">Active (exercise 6-7 days/week)</option>
+                                    <option value="very_active">Very Active (hard exercise 6-7 days/week)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>Dashboard Goal Progress</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="profile-dashboard-goal">Goal Progress Type</label>
+                                <select id="profile-dashboard-goal" name="dashboard_goal_type">
+                                    <option value="weight_loss">Weight Loss Progress</option>
+                                    <option value="muscle_gain">Muscle Gain Progress</option>
+                                    <option value="workouts">Workouts Completed</option>
+                                    <option value="calories">Calories Consumed</option>
+
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>Dietary Preferences</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="profile-diet">Dietary Preference</label>
+                                <select id="profile-diet" name="dietary_preference">
+                                    <option value="omnivore">Omnivore</option>
+                                    <option value="vegetarian">Vegetarian</option>
+                                    <option value="vegan">Vegan</option>
+                                    <option value="pescatarian">Pescatarian</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="profile-allergies">Allergies (comma separated)</label>
+                                <input type="text" id="profile-allergies" name="allergies" placeholder="e.g., peanuts, shellfish, dairy">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                        <div id="profile-message" class="message"></div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <style>
+        /* Add this new style for content sections */
+        .content-section {
+            display: none;
+            padding: 2rem;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        .bmi-calculator {
+            max-width: 400px;
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: var(--white);
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--light-gray);
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+
+        .btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+
+
+        .btn:hover {
+            background: #b91c1c;
+        }
+
+        .bmi-result {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            border-radius: 6px;
+            background: #f8f9fa;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        /* Profile Form Styles */
+        .profile-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .profile-form {
+            background: var(--white);
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .form-section {
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid var(--light-gray);
+        }
+
+        .form-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+
+        .form-section h3 {
+            color: var(--dark);
+            margin-bottom: 1.5rem;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+
+        .form-row {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+
+        .form-row:last-child {
+            margin-bottom: 0;
+        }
+
+
+        .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--light-gray);
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+            outline: none;
+        }
+
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+
+        .btn-primary {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+
+        .btn-primary:hover {
+            background: #b91c1c;
+        }
+
+
+        .message {
+            font-size: 0.875rem;
+            padding: 0.5rem 0;
+        }
+
+
+        .message.success {
+            color: #10B981;
+        }
+
+
+        .message.error {
+            color: #EF4444;
+        }
+
+
+        @media (max-width: 768px) {
+            .form-row {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .profile-container {
+                padding: 1rem;
+            }
+            
+            .profile-form {
+                padding: 1.5rem;
+            }
+        }
+
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+
+
+    <script>
+        // Signout button handler with back navigation protection
+        document.addEventListener('DOMContentLoaded', function() {
+            const signoutBtn = document.getElementById('signout-btn');
+            if (signoutBtn) {
+                signoutBtn.addEventListener('click', async function() {
+                    try {
+                        await fetch('/logout', { credentials: 'same-origin' });
+                        // Remove dashboard from history
+                        window.history.replaceState(null, '', '/');
+                        window.location.href = '/';
+                    } catch (err) {
+                        window.history.replaceState(null, '', '/');
+                        window.location.href = '/';
+                    }
+                });
+            }
+        });
+
+        // Auth check on dashboard load and on bfcache restore
+        function checkAuth() {
+            if (window.location.pathname.includes('dashboard')) {
+                fetch('/api/profile', { credentials: 'same-origin' })
+                    .then(res => {
+                        if (!res.ok) window.location.href = '/';
+                    })
+                    .catch(() => window.location.href = '/');
+            }
+        }
+        document.addEventListener('DOMContentLoaded', checkAuth);
+        window.onpageshow = function(event) {
+            if (event.persisted) {
+                checkAuth();
+            }
+        };
+        // Utility function to show messages
+        function showMessage(message, type = 'info') {
+            const messageDiv = document.getElementById('profile-message');
+            messageDiv.textContent = message;
+            messageDiv.className = `message ${type}`;
+            
+            // Auto-hide message after 5 seconds
+            setTimeout(() => {
+                messageDiv.textContent = '';
+                messageDiv.className = 'message';
+            }, 5000);
+        }
+
+        // Navigation functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get all nav links
+            const navLinks = document.querySelectorAll('.nav-link');
+            const contentSections = document.querySelectorAll('.content-section');
+
+            // Show dashboard content by default
+            document.getElementById('dashboard-content').classList.add('active');
+
+            // Add click event to each nav link
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Remove active class from all links and sections
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    contentSections.forEach(section => section.classList.remove('active'));
+                    
+                    // Add active class to clicked link
+                    this.classList.add('active');
+                    
+                    // Show corresponding content
+                    const target = this.getAttribute('href').substring(1);
+                    if (!target) return; // skip if no target
+                    const section = document.getElementById(`${target}-content`);
+                    if (section) {
+                        section.classList.add('active');
+                    } else {
+                        console.warn(`Section with id '${target}-content' not found!`);
+                    }
+
+                    // Load profile data if profile link is clicked
+                    if (target === 'profile') {
+                        loadProfileData();
+                    }
+                });
+            });
+
+
+            // BMI Calculator functionality
+            const calculateBtn = document.getElementById('calculate-bmi');
+            if (calculateBtn) {
+                calculateBtn.addEventListener('click', function() {
+                    const height = parseFloat(document.getElementById('height').value) / 100; // convert cm to m
+                    const weight = parseFloat(document.getElementById('weight').value);
+                    
+                    if (isNaN(height) || isNaN(weight) || height <= 0 || weight <= 0) {
+                        document.getElementById('bmi-result').textContent = 'Please enter valid values';
+                        return;
+                    }
+                    
+                    const bmi = (weight / (height * height)).toFixed(1);
+                    let category = '';
+                    
+                    if (bmi < 18.5) category = 'Underweight';
+                    else if (bmi < 25) category = 'Normal weight';
+                    else if (bmi < 30) category = 'Overweight';
+                    else category = 'Obese';
+                    
+                    document.getElementById('bmi-result').innerHTML = `
+                        <p>Your BMI: <strong>${bmi}</strong></p>
+                        <p>Category: <strong>${category}</strong></p>
+                    `;
+                });
+            }
+
+            // Profile form submission
+            const profileForm = document.getElementById('profile-form');
+            if (profileForm) {
+                profileForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    const formData = new FormData(profileForm);
+                    const data = {};
+                    
+                    // Convert form data to object
+                    formData.forEach((value, key) => {
+                        // Handle allergies as an array
+                        if (key === 'allergies') {
+                            data[key] = value.split(',').map(item => item.trim()).filter(item => item);
+                        } else if (key === 'dashboard_goal_type') {
+                            data[key] = value;
+                        } else if (value) {
+                            data[key] = value;
+                        }
+                    });
+
+                    try {
+                        const response = await fetch('/api/profile', {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(data),
+                            credentials: 'same-origin'
+                        });
+
+                        const result = await response.json();
+
+                        if (response.ok) {
+                            showMessage('Profile updated successfully!', 'success');
+                        } else {
+                            throw new Error(result.error || 'Failed to update profile');
+                        }
+                    } catch (error) {
+                        console.error('Error updating profile:', error);
+                        showMessage(error.message || 'An error occurred while updating profile', 'error');
+                    }
+                });
+            }
+        });
+
+        // Load user profile data
+        async function loadProfileData() {
+            try {
+                const response = await fetch('/api/profile', {
+                    credentials: 'same-origin',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to load profile data');
+                }
+
+                const user = await response.json();
+                
+                // Fill form fields
+                document.getElementById('profile-name').value = user.name || '';
+                document.getElementById('profile-email').value = user.email || '';
+                document.getElementById('profile-age').value = user.age || '';
+                document.getElementById('profile-gender').value = user.gender || '';
+                document.getElementById('profile-height').value = user.height || '';
+                document.getElementById('profile-weight').value = user.weight || '';
+                document.getElementById('profile-goal').value = user.fitness_goal || 'weight_loss';
+                document.getElementById('profile-activity').value = user.activity_level || 'moderate';
+                document.getElementById('profile-dashboard-goal').value = user.dashboard_goal_type || 'weight_loss';
+        // Instantly update dashboard stats and pie chart on change
+        document.getElementById('profile-dashboard-goal').addEventListener('change', async function() {
+            // Save dashboard goal type instantly
+            const dashboardGoalType = this.value;
+            try {
+                const response = await fetch('/api/profile', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ dashboard_goal_type: dashboardGoalType })
+                });
+                if (!response.ok) {
+                    const result = await response.json();
+                    showMessage(result.error || 'Failed to update dashboard goal type', 'error');
+                } else {
+                    updateDashboardStats();
+                }
+            } catch (error) {
+                showMessage('Failed to update dashboard goal type', 'error');
+            }
+        });
+                document.getElementById('profile-diet').value = user.dietary_preference || 'omnivore';
+                document.getElementById('profile-allergies').value = Array.isArray(user.allergies) 
+                    ? user.allergies.join(', ') 
+                    : user.allergies || '';
+                    
+            } catch (error) {
+                console.error('Error loading profile:', error);
+                showMessage('Failed to load profile data', 'error');
+            }
+        }
+    </script>
+</body>
+</html>

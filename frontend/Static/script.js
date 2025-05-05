@@ -28,28 +28,32 @@ document.addEventListener("DOMContentLoaded", function () {
             const password = document.getElementById("signup-password").value.trim();
             const signupButton = document.getElementById("signup-button");
 
-            // Basic Validation
             if (!name || !email || !password) {
                 alert("Please fill in all fields.");
                 return;
             }
 
-            signupButton.disabled = true; // Disable button to prevent multiple clicks
+            signupButton.disabled = true;
             
             try {
-                const response = await fetch("http://127.0.0.1:5000/signup", {
+                const response = await fetch("/signup", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ name, email, password })
                 });
 
+                if (!response.ok) {
+                    throw new Error("Signup failed. Please try again.");
+                }
+                
                 const data = await response.json();
-                alert(data.message || data.error); // Show response message
+                alert(data.message || "Signup successful!");
+                signupForm.reset();
             } catch (error) {
                 console.error("Signup Error:", error);
-                alert("An error occurred while signing up. Please try again.");
+                alert(error.message);
             } finally {
-                signupButton.disabled = false; // Re-enable button
+                signupButton.disabled = false;
             }
         });
     }
@@ -63,32 +67,36 @@ document.addEventListener("DOMContentLoaded", function () {
             const password = document.getElementById("login-password").value.trim();
             const loginButton = document.getElementById("login-button");
 
-            // Basic Validation
             if (!email || !password) {
                 alert("Please enter your email and password.");
                 return;
             }
 
-            loginButton.disabled = true; // Disable button to prevent multiple clicks
+            loginButton.disabled = true;
             
             try {
-                const response = await fetch("http://127.0.0.1:5000/login", {
+                const response = await fetch("/login", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ email, password })
                 });
 
+                if (!response.ok) {
+                    throw new Error(`Login failed. Status: ${response.status}`);
+                }
+
                 const data = await response.json();
-                if (data.success) {
-                    window.location.href = "/dashboard"; // Redirect on success
+                
+                if (data.redirect) {
+                    window.location.href = data.redirect; // ✅ Redirect to dashboard
                 } else {
-                    alert(data.message || "Login failed. Please check your credentials.");
+                    alert(data.message || "Invalid response from server.");
                 }
             } catch (error) {
                 console.error("Login Error:", error);
-                alert("An error occurred while logging in. Please try again.");
+                alert(error.message);
             } finally {
-                loginButton.disabled = false; // Re-enable button
+                loginButton.disabled = false;
             }
         });
     }

@@ -46,7 +46,7 @@ body{
 }
 
 .container button{
-    background-color: rgb(255, 13, 13);
+    background-color: #ef4444;
     color: #fff;
     font-size: 12px;
     padding: 10px 45px;
@@ -160,7 +160,7 @@ body{
 }
 
 .toggle{
-    background-color: rgba(255, 4, 4, 0.952);
+    background-color: #e21010;
     height: 100%;
     color: #fff;
     position: relative;
@@ -202,4 +202,3 @@ body{
     right: 0;
     transform: translateX(0);
 }
-

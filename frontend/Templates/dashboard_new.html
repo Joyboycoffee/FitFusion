@@ -32,6 +32,7 @@
             display: flex;
             min-height: 100vh;
             background-color: var(--light);
+            overflow-y: hidden;
         }
 
         /* Sidebar */
@@ -194,9 +195,14 @@
         <div id="dashboard-content" class="content-section active">
             <div class="dashboard-header">
                 <h1>Welcome to FitFusion</h1>
-                <button id="signout-btn" class="signout-btn" title="Sign Out">
-                    <i class="fas fa-sign-out-alt"></i> Sign Out
-                </button>
+                <div class="header-actions">
+                    <a href="/download_report" class="signout-btn">
+                        <i class="fa fa-download"></i> Download Report
+                    </a>
+                    <button id="signout-btn" class="signout-btn" title="Sign Out">
+                        <i class="fas fa-sign-out-alt"></i> Sign Out
+                    </button>
+                </div>
             </div>
             <div class="dashboard-cards">
                 <div class="dashboard-card">
@@ -548,9 +554,10 @@
                     </div>
 
                     <div class="form-actions">
-                        <button type="submit" class="btn btn-primary">Save Changes</button>
-                        <div id="profile-message" class="message"></div>
-                    </div>
+    <button type="submit" class="btn btn-primary">Save Changes</button>
+    
+    <div id="profile-message" class="message"></div>
+</div>
                 </form>
             </div>
         </div>

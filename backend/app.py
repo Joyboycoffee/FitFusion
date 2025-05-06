@@ -48,7 +48,7 @@ def generate_jwt(email):
 # Middleware to Protect Routes
 # Update the token_required decorator
 def token_required(f):
-    @functools.wraps(f)  # Add this line
+    @functools.wraps(f)
     def decorated(*args, **kwargs):
         token = request.cookies.get("token")
         if not token:
@@ -511,6 +511,53 @@ def reset_password():
     users.update_one({'email': email}, {'$set': {'password': hashed}})
     reset_otps.pop(email, None)
     return jsonify({'success': True, 'message': 'Password reset successful.'})
+
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from io import BytesIO
+
+@app.route('/download_report', methods=['GET'])
+@token_required
+def download_report(current_user):
+    # Fetch user data from MongoDB
+    user = users.find_one({'email': current_user['email']})
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+
+    # Prepare PDF in memory
+    buffer = BytesIO()
+    p = canvas.Canvas(buffer, pagesize=letter)
+    width, height = letter
+    y = height - 50
+
+    p.setFont('Helvetica-Bold', 20)
+    p.drawString(50, y, 'FitFusion User Report')
+    y -= 40
+    p.setFont('Helvetica', 14)
+    p.drawString(50, y, f"Name: {user.get('name', '')}")
+    y -= 30
+    p.drawString(50, y, f"Email: {user.get('email', '')}")
+    y -= 30
+    p.drawString(50, y, f"Age: {user.get('age', '')}")
+    y -= 30
+    p.drawString(50, y, f"Gender: {user.get('gender', '')}")
+    y -= 30
+    p.drawString(50, y, f"Height: {user.get('height', '')} cm")
+    y -= 30
+    p.drawString(50, y, f"Weight: {user.get('weight', '')} kg")
+    y -= 30
+    p.drawString(50, y, f"Fitness Goal: {user.get('fitness_goal', '')}")
+    y -= 30
+    # Add more attributes as needed
+
+    p.showPage()
+    p.save()
+    buffer.seek(0)
+
+    response = make_response(buffer.read())
+    response.headers.set('Content-Type', 'application/pdf')
+    response.headers.set('Content-Disposition', 'attachment', filename='FitFusion_User_Report.pdf')
+    return response
 
 if __name__ == "__main__":
     app.run(debug=True)

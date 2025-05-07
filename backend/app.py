@@ -518,42 +518,127 @@ from io import BytesIO
 
 @app.route('/download_report', methods=['GET'])
 @token_required
-def download_report(current_user):
-    # Fetch user data from MongoDB
+def download_report():
+    token = request.cookies.get('token')
+    decoded_token = jwt.decode(token, app.config["SECRET_KEY"], algorithms=["HS256"])
+    user = users.find_one({'email': decoded_token['email']})
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import letter
+    from reportlab.lib.units import inch
+    from reportlab.platypus import Table, TableStyle, Paragraph, SimpleDocTemplate, Spacer
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from io import BytesIO
+
     user = users.find_one({'email': current_user['email']})
     if not user:
         return jsonify({'error': 'User not found'}), 404
 
-    # Prepare PDF in memory
+    # Gather all data
+    workout_logs = user.get('workout_logs', [])
+    nutrition_logs = user.get('nutrition_logs', [])
+    height = user.get('height', 170)
+    weight = user.get('weight', 65)
+    bmi = round((weight / ((height / 100) ** 2)), 1) if height and weight else 'N/A'
+    dashboard_goal_type = user.get('dashboard_goal_type', 'weight_loss')
+    goal_progress = user.get('goal_progress', 0)
+
+    # Prepare PDF
     buffer = BytesIO()
-    p = canvas.Canvas(buffer, pagesize=letter)
-    width, height = letter
-    y = height - 50
+    doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=40, leftMargin=40, topMargin=40, bottomMargin=40)
+    elements = []
+    styles = getSampleStyleSheet()
+    red_header = ParagraphStyle('RedHeader', parent=styles['Heading1'], textColor=colors.HexColor('#ef4444'), fontSize=22, spaceAfter=18)
+    section_header = ParagraphStyle('SectionHeader', parent=styles['Heading2'], textColor=colors.HexColor('#b91c1c'), fontSize=16, spaceAfter=10)
+    normal = styles['Normal']
 
-    p.setFont('Helvetica-Bold', 20)
-    p.drawString(50, y, 'FitFusion User Report')
-    y -= 40
-    p.setFont('Helvetica', 14)
-    p.drawString(50, y, f"Name: {user.get('name', '')}")
-    y -= 30
-    p.drawString(50, y, f"Email: {user.get('email', '')}")
-    y -= 30
-    p.drawString(50, y, f"Age: {user.get('age', '')}")
-    y -= 30
-    p.drawString(50, y, f"Gender: {user.get('gender', '')}")
-    y -= 30
-    p.drawString(50, y, f"Height: {user.get('height', '')} cm")
-    y -= 30
-    p.drawString(50, y, f"Weight: {user.get('weight', '')} kg")
-    y -= 30
-    p.drawString(50, y, f"Fitness Goal: {user.get('fitness_goal', '')}")
-    y -= 30
-    # Add more attributes as needed
+    # Title
+    elements.append(Paragraph('FitFusion User Report', red_header))
+    elements.append(Spacer(1, 8))
 
-    p.showPage()
-    p.save()
+    # Profile Section
+    elements.append(Paragraph('Profile', section_header))
+    profile_data = [
+        ['Name:', user.get('name', '')],
+        ['Email:', user.get('email', '')],
+        ['Age:', user.get('age', '')],
+        ['Gender:', user.get('gender', '')],
+        ['Height:', f"{user.get('height', '')} cm"],
+        ['Weight:', f"{user.get('weight', '')} kg"],
+        ['Fitness Goal:', user.get('fitness_goal', '')],
+        ['Dietary Preference:', user.get('dietary_preference', '')],
+        ['Allergies:', ', '.join(user.get('allergies', []))],
+        ['BMI:', bmi],
+        ['Goal Progress:', f"{goal_progress}%"],
+    ]
+    profile_table = Table(profile_data, colWidths=[120, 320])
+    profile_table.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#fff0f0')),
+        ('TEXTCOLOR', (0,0), (-1,-1), colors.HexColor('#1F2937')),
+        ('FONTNAME', (0,0), (-1,-1), 'Helvetica'),
+        ('FONTSIZE', (0,0), (-1,-1), 12),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 6),
+        ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, colors.HexColor('#f9fafb')]),
+    ]))
+    elements.append(profile_table)
+    elements.append(Spacer(1, 18))
+
+    # Workout Logs Section
+    elements.append(Paragraph('Workout Logs', section_header))
+    if workout_logs:
+        workout_data = [['Date', 'Type', 'Duration (min)', 'Calories Burned']]
+        for log in workout_logs[-10:]:
+            workout_data.append([
+                log.get('date', ''),
+                log.get('type', ''),
+                str(log.get('duration', '')),
+                str(log.get('calories_burned', ''))
+            ])
+        workout_table = Table(workout_data, colWidths=[90, 100, 100, 100])
+        workout_table.setStyle(TableStyle([
+            ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#ef4444')),
+            ('TEXTCOLOR', (0,0), (-1,0), colors.white),
+            ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0,0), (-1,-1), 11),
+            ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, colors.HexColor('#fff0f0')]),
+            ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#ef4444')),
+        ]))
+        elements.append(workout_table)
+    else:
+        elements.append(Paragraph('No workout logs found.', normal))
+    elements.append(Spacer(1, 18))
+
+    # Nutrition Logs Section
+    elements.append(Paragraph('Nutrition Logs', section_header))
+    if nutrition_logs:
+        nutrition_data = [['Date', 'Meal', 'Calories', 'Protein', 'Carbs', 'Fat']]
+        for log in nutrition_logs[-10:]:
+            nutrition_data.append([
+                log.get('date', ''),
+                log.get('meal', ''),
+                str(log.get('calories', '')),
+                str(log.get('protein', '')),
+                str(log.get('carbs', '')),
+                str(log.get('fat', ''))
+            ])
+        nutrition_table = Table(nutrition_data, colWidths=[70, 90, 60, 60, 60, 60])
+        nutrition_table.setStyle(TableStyle([
+            ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#ef4444')),
+            ('TEXTCOLOR', (0,0), (-1,0), colors.white),
+            ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0,0), (-1,-1), 11),
+            ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, colors.HexColor('#fff0f0')]),
+            ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#ef4444')),
+        ]))
+        elements.append(nutrition_table)
+    else:
+        elements.append(Paragraph('No nutrition logs found.', normal))
+    elements.append(Spacer(1, 18))
+
+    # Save PDF
+    doc.build(elements)
     buffer.seek(0)
-
     response = make_response(buffer.read())
     response.headers.set('Content-Type', 'application/pdf')
     response.headers.set('Content-Disposition', 'attachment', filename='FitFusion_User_Report.pdf')

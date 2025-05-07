@@ -2,6 +2,7 @@
   "dependencies": {
     "@tailwindcss/cli": "^4.0.14",
     "@tailwindcss/vite": "^4.0.14",
+    "jspdf": "^3.0.1",
     "react-router-dom": "^7.3.0"
   },
   "devDependencies": {

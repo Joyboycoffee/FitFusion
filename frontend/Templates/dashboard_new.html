@@ -28,12 +28,16 @@
             --sidebar-width: 240px;
         }
 
+        html, body {
+            overflow-x: hidden;
+        }
         body {
             display: flex;
             min-height: 100vh;
             background-color: var(--light);
-            overflow-y: hidden;
         }
+
+        
 
         /* Sidebar */
         .sidebar {
@@ -123,7 +127,7 @@
 
     </style>
 </head>
-<body>
+<body class="dashboard-page">
     <script>
         // Fastest auth check on any load (including bfcache)
         (function() {
@@ -196,9 +200,9 @@
             <div class="dashboard-header">
                 <h1>Welcome to FitFusion</h1>
                 <div class="header-actions">
-                    <a href="/download_report" class="signout-btn">
+                    <button id="download-report-btn" class="signout-btn">
                         <i class="fa fa-download"></i> Download Report
-                    </a>
+                    </button>
                     <button id="signout-btn" class="signout-btn" title="Sign Out">
                         <i class="fas fa-sign-out-alt"></i> Sign Out
                     </button>
@@ -562,6 +566,14 @@
             </div>
         </div>
     </main>
+
+<!-- jsPDF and downloadReport.js for PDF generation -->
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="/Static/downloadReport.js"></script>
+<script>
+document.getElementById('download-report-btn').addEventListener('click', window.downloadUserReport);
+</script>
+
 
     <style>
         /* Add this new style for content sections */

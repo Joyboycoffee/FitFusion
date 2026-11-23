@@ -18,9 +18,19 @@ app = Flask(__name__, template_folder=TEMPLATES_DIR, static_folder=STATIC_DIR)
 CORS(app)
 app.config["SECRET_KEY"] = os.urandom(24).hex()
 
+# Load environment variables from .env if present
+env_file = os.path.join(BASE_DIR, ".env")
+if os.path.exists(env_file):
+    with open(env_file, "r", encoding="utf-8") as f:
+        for line in f:
+            if "=" in line and not line.strip().startswith("#"):
+                k, v = line.strip().split("=", 1)
+                os.environ.setdefault(k.strip(), v.strip())
+
 # Connect to MongoDB
+MONGO_URI = os.getenv("MONGO_URI", "mongodb+srv://<username>:<password>@cluster.mongodb.net/FitFusion?retryWrites=true&w=majority")
 try:
-    client = pymongo.MongoClient("mongodb+srv://fitfusiondatabase:REDACTED_PASSWORD@joyboy.pevs1.mongodb.net/FitFusion?retryWrites=true&w=majority&appName=joyboy")
+    client = pymongo.MongoClient(MONGO_URI)
     db = client["FitFusion"]
     users = db["users"]
     print("✅ Connected to MongoDB Atlas successfully!")
@@ -452,8 +462,8 @@ from email.mime.multipart import MIMEMultipart
 reset_otps = {}  # email -> {'otp': str, 'expires': datetime}
 
 # Set your sender email here:
-SENDER_EMAIL = "fitfusion.noreply@gmail.com"
-APP_PASSWORD = "REDACTED_APP_PASSWORD"  # Provided by user, keep this secret!
+SENDER_EMAIL = os.getenv("SENDER_EMAIL", "fitfusion.noreply@gmail.com")
+APP_PASSWORD = os.getenv("APP_PASSWORD", "")
 
 # Helper to send OTP email
 def send_otp_email(to_email, otp):
